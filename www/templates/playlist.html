@@ -1,0 +1,55 @@
+<ion-view view-title="Playlist">
+  <ion-content>
+    <h1>Playlist</h1>
+
+    <div class="panel panel-default yellow" ng-if="color == 'yellow'">
+      <div class="panel-body"
+           style="color: orange; height: 100px; font-size: 20px; padding-left: 10%; padding-top: 10%;">
+        Sample Color Change Cordova Plugin
+      </div>
+    </div>
+    <div class="panel panel-default blue" ng-if="color == 'blue'">
+      <div class="panel-body"
+           style="color: orange; height: 100px; font-size: 20px; padding-left: 10%; padding-top: 10%;">
+        Sample Color Change Cordova Plugin
+      </div>
+    </div>
+    <div class="panel panel-default red" ng-if="color == 'red'">
+      <div class="panel-body"
+           style="color: orange; height: 100px; font-size: 20px; padding-left: 10%; padding-top: 10%;">
+        Sample Color Change Cordova Plugin
+      </div>
+    </div>
+    <div class="panel panel-default green" ng-if="color == 'green'">
+      <div class="panel-body"
+           style="color: orange; height: 100px; font-size: 20px; padding-left: 10%; padding-top: 10%;">
+        Sample Color Change Cordova Plugin
+      </div>
+    </div>
+    <div class="row">
+      <div class="col col-33">
+        <button class="button" style="background-color: red; color: white;"
+                ng-click="changeColor('callRed')">Red
+        </button>
+      </div>
+      <div class="col col-33">
+        <button class="button" style="background-color: blue; color: white;"
+                ng-click="changeColor('callBlue')">Blue
+        </button>
+      </div>
+      <div class="col col-33">
+        <button class="button" style="background-color: green; color: white;"
+                ng-click="changeColor('callGreen')">Green
+        </button>
+      </div>
+    </div>
+
+    <div class="row" ng-repeat="btns in buttons">
+      <div class="col">
+        <button class="button button-primary" ng-click="buttonFunctionality($index)">
+          {{btns.name}}
+        </button>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>

@@ -1,0 +1,10 @@
+<ion-view view-title="Search">
+  <ion-content>
+    <ion-list>
+      <ion-item ng-repeat="device in devices">
+        {{device}}
+      </ion-item>
+      <button ng-click="checkData()" class="button button-energized">Check Data</button>
+    </ion-list>
+  </ion-content>
+</ion-view>
