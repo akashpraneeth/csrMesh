@@ -1,0 +1,43 @@
+<ion-view view-title="{{device.APPEARANCE}}">
+    <ion-content class="padding">
+        <div class="list">
+
+            <div class="item item-icon-left">
+                <i class="icon fa fa-lightbulb-o fa-lg" aria-hidden="true"></i>
+                Short Name
+                <span class="item-note" style="color: blue">
+                    {{device.SHORTNAME}}
+                </span>
+            </div>
+
+            <div class="item item-icon-left">
+                <i class="icon fa fa-info-circle fa-lg" aria-hidden="true"></i>
+                Appearance Name
+                <span class="item-note" style="color: blue">
+                    {{device.APPEARANCE}}
+                </span>
+            </div>
+
+        </div>
+
+        <div class="row" align="center"><h3 class="col">Color Selector</h3></div>
+        <div class="container" align="center">
+            <button style="width: 250px; height: 250px; border-radius: 50%;font-size: x-large;" align="center"
+                    color-box="{{device.ledColor}}"
+                    color-picker="" ng-model="device.ledColor" modal-title="Choose a color"
+                    modal-class="vcc" header-footer-class="bar-positive">
+                {{ device.ledColor}}
+            </button>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="row" align="center">
+            <span class="col col-33"></span>
+            <button class="col col-33 button button-balanced button-small" ng-click="setRgb()" style="font-size: large">
+                Submit
+            </button>
+            <span class="col col-33"></span>
+        </div>
+    </ion-content>
+</ion-view>

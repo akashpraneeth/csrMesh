@@ -1,0 +1,32 @@
+<ion-view view-title="Dashboard">
+    <ion-content class="padding">
+        <div class="list">
+
+            <div class="item item-divider">
+                Bluetooth <i class="fa fa-bluetooth-b fa-lg" aria-hidden="true"></i>
+            </div>
+
+            <div class="item" ng-click="triggerEvent('bluetooth', 'enable')">
+                Enable Connection
+            </div>
+
+            <div class="item" ng-click="triggerEvent('bluetooth', 'check')">
+                Check Connection
+            </div>
+
+            <div class="item item-divider">
+                Channel <i class="fa fa-signal fa-lg" aria-hidden="true"></i>
+            </div>
+
+            <div class="item" ng-click="triggerEvent('channel', 'enable')">
+                Enable Connection
+            </div>
+
+            <div class="item" ng-click="triggerEvent('channel', 'check')">
+                Check Connection
+            </div>
+
+        </div>
+
+    </ion-content>
+</ion-view>

@@ -1,0 +1,12 @@
+<ion-view view-title="Associated Devices">
+    <ion-content>
+        <ion-list>
+            <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="device in associatedDevices"
+                      type="item-text-wrap" href="#/tab/associatedDevices/{{device.deviceId}}">
+                <h2>{{device.SHORTNAME}}</h2>
+                <p>{{device.APPEARANCE}}</p>
+                <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>
