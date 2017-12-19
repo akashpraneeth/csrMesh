@@ -1,259 +1,188 @@
 angular.module('starter.controllers', [])
-	
-	.controller('AppCtrl', function ($scope, $ionicModal, $timeout) {
-		
-		// With the new view caching in Ionic, Controllers are only called
-		// when they are recreated or on app start, instead of every page change.
-		// To listen for when this page is active (for example, to refresh data),
-		// listen for the $ionicView.enter event:
-		//$scope.$on('$ionicView.enter', function(e) {
-		//});
-		
-		// Form data for the login modal
-		$scope.loginData = {};
-		
-		// Create the login modal that we will use later
-		$ionicModal.fromTemplateUrl('templates/login.html', {
-			scope: $scope
-		}).then(function (modal) {
-			$scope.modal = modal;
-		});
-		
-		// Triggered in the login modal to close it
-		$scope.closeLogin = function () {
-			$scope.modal.hide();
-		};
-		
-		// Open the login modal
-		$scope.login = function () {
-			$scope.modal.show();
-		};
-		
-		// Perform the login action when the user submits the login form
-		$scope.doLogin = function () {
-			console.log('Doing login', $scope.loginData);
-			
-			// Simulate a login delay. Remove this and replace with your login
-			// code if using a login system
-			$timeout(function () {
-				$scope.closeLogin();
-			}, 1000);
-		};
-	})
-	
-	.controller('PlaylistsCtrl', function ($scope, $state) {
-		$scope.playlists = [
-			{title: 'Reggae', id: 1},
-			{title: 'Chill', id: 2},
-			{title: 'Dubstep', id: 3},
-			{title: 'Indie', id: 4},
-			{title: 'Rap', id: 5},
-			{title: 'Cowbell', id: 6}
-		];
-		$scope.cordovaCall = function () {
-			$state.go("app.search");
+
+	.controller('DashCtrl', ["$scope", "ionicToast",
+		function ($scope, ionicToast) {
+			function checkBluetooth() {
+				window.CsrMeshPlugin.isBluetoothEnabled(
+					function (res) {
+						if (res) {
+							ionicToast.show("Bluetooth enabled", 'bottom', false, 2000);
+						} else {
+						  ionicToast.show("Bluetooth not enabled", 'bottom', false, 2000);
+						}
+					}, function (err) {
+						window.alert(err);
+					});
+			}
+
+			function enableBluetooth() {
+				window.CsrMeshPlugin.enableBluetooth(
+					function (res) {
+						if (res) {
+						  ionicToast.show("Bluetooth enabled", 'bottom', false, 2000);
+						} else {
+							ionicToast.show("Problem in enabling Bluetooth", 'bottom', false, 2000);
+						}
+					}, function (err) {
+						window.alert(err);
+					});
+			}
+
+			function enableChannel() {
+				window.CsrMeshPlugin.enableChannel(
+					function (res) {
+						if (res) {
+							ionicToast.show("Channel enabled", 'bottom', false, 2000);
+						} else {
+							ionicToast.show("Problem in enabling channel.", 'bottom', false, 2000);
+						}
+					}, function (err) {
+						window.alert(err);
+					});
+			}
+
+
+			function checkChannel() {
+				window.CsrMeshPlugin.isChannelReady(
+					function (res) {
+						if (res) {
+							ionicToast.show("channel is Ready", 'bottom', false, 2000);
+						} else {
+						  ionicToast.show("channel is not ready", 'bottom', false, 2000);
+						}
+					}, function (err) {
+						window.alert(err);
+					});
+			}
+
+			$scope.triggerEvent = function (type, event) {
+				if (event == "enable") {
+					ionicToast.show('Enabling ' + type, 'bottom', false, 2000);
+				}
+
+				if (type == "bluetooth") {
+					switch (event) {
+						case "enable": {
+							enableBluetooth();
+							break;
+						}
+
+						case "check": {
+							checkBluetooth();
+						}
+					}
+				} else if (type == "channel") {
+					switch (event) {
+						case "enable": {
+							enableChannel();
+							break;
+						}
+
+						case "check": {
+							checkChannel();
+						}
+					}
+				}
+			}
+		}])
+
+	.controller('DeviceListCtrl', ["$scope", "CSRService", "ionicToast",
+		function ($scope, CSRService, ionicToast) {
+			var associatedDevices = CSRService.getAssociatedDevices();
+
+			$scope.devices = [];
+
+			function checkChannel(success, error) {
+				window.CsrMeshPlugin.isChannelReady(
+					function (res) {
+						if (res) {
+							success(true);
+						} else {
+							error(false);
+						}
+					}, function (err) {
+						error(false);
+					});
+			}
+
+			function checkIfDeviceIsAlreadyAssociated(UUIDHASH31) {
+				for (var i = 0; i < associatedDevices.length; i++) {
+					if (associatedDevices[i].UUIDHASH31 == UUIDHASH31) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			$scope.startScan = function () {
+				checkChannel(function (success) {
+					window.CsrMeshPlugin.startScan(
+						function (res) {
+							$scope.$broadcast("device.detected", {"deviceData": res});
+						}, function (err) {
+							window.alert(err);
+						});
+				}, function (failure) {
+					ionicToast.show('Please wait until channel is ready', 'bottom', false, 2000);
+				});
+			};
+
+			$scope.associateDevice = function (index) {
+			console.log("device Associated");
+				var deviceToAssociate = $scope.devices[index];
+				window.CsrMeshPlugin.associateDevice(deviceToAssociate.UUIDHASH31, function (deviceId) {
+						var associatedDevice = deviceToAssociate;
+						associatedDevice.deviceId = deviceId;
+						CSRService.setAssociatedDevices(associatedDevice);
+						$scope.devices.splice(index, 1);
+						ionicToast.show("device associated.", 'bottom', false, 2000);
+						$state.go("app.associatedDevices");
+					},
+					function (err) {
+						console.log(err);
+						console.log("Error in associating device");
+					});
+			};
+
+			$scope.$on("device.detected", function (event, args) {
+				var device = args.deviceData;
+				var deviceExists = false;
+				for (var i = 0; i < $scope.devices.length; i++) {
+					if ($scope.devices[i].UUIDHASH31 == device.UUIDHASH31 || checkIfDeviceIsAlreadyAssociated(device.UUIDHASH31)) {
+						deviceExists = true;
+						break;
+					}
+				}
+				if (!deviceExists) {
+					$scope.devices.push(device);
+				}
+			});
+			 $scope.startScan();
+		}])
+
+	.controller('AssociatedDeviceListCtrl', ["$scope", "CSRService",
+		function ($scope, CSRService) {
+			function getAssociatedDevices() {
+				 $scope.associatedDevices = CSRService.getAssociatedDevices();
+			}
+			getAssociatedDevices();
+		}])
+
+	.controller('DeviceDetailCtrl', function ($scope, $stateParams, CSRService) {
+		var deviceId = $stateParams.deviceId;
+		$scope.device = CSRService.getDeviceDetailsByDeviceId(deviceId);
+		if(!$scope.device.ledColor){
+		$scope.device.ledColor = "#5dafde";
 		}
-	})
-	
-	.controller('PlaylistCtrl', function ($scope, $stateParams) {
-		$scope.color = "yellow";
-		$scope.Buttons = ["Is Bluetooth Enabled", "Is Channel Enabled", "Enable Channel", "Enable Bluetooth"];
-		$scope.changeColor = function (clr) {
-			console.log(clr);
-			if (clr == 'callBlue') {
-				window.MyCordovaPlugin.callBlue(function (res) {
-					//window.alert(res);
-					$scope.color = res;
-				});
-			} else if (clr == 'callRed') {
-				window.MyCordovaPlugin.callRed(function (res) {
-					//window.alert(res);
-					$scope.color = res;
-				});
-			} else if (clr == 'callGreen') {
-				window.MyCordovaPlugin.lightGetState(function (res) {
-					//window.MyCordovaPlugin.callGreen(function (res) {
-					//window.alert(res);
-					$scope.color = res;
-				}, function (err) {
-					window.alert(err);
-				});
-			}
-		};
-		
-		$scope.isChannelReady = function () {
-			window.MyCordovaPlugin.isChannelReady(
-				function (res) {
-					if (res) {
-						console.log("channel is Ready");
-					} else {
-						console.log("channel is not ready");
-					}
-				}, function (err) {
-					window.alert(err);
-				});
-		};
-		$scope.buttons = [
-			{name: "Is Bluetooth Enabled"},
-			{name: "Is Channel Enabled"},
-			{name: "Enable Channel"},
-			{name: "Enable Bluetooth"}
-		];
-		
-		$scope.buttonFunctionality = function (index) {
-			console.log(index);
-			switch (index) {
-				case 0 : {
-					$scope.isBluetoothEnabled();
-					break;
-				}
-				case 1 : {
-					$scope.isChannelReady();
-					break;
-				}
-				case 2 : {
-					$scope.enableChannel();
-					break;
-				}
-				case 3 : {
-					$scope.enableBluetooth();
-					break;
-				}
-				default: {
-					break;
-				}
-			}
-		};
-		
-		$scope.isBluetoothEnabled = function () {
-			window.MyCordovaPlugin.isBluetoothEnabled(
-				function (res) {
-					if (res) {
-						console.log("Bluetooth enabled");
-					} else {
-						console.log("Bluetooth not enabled.");
-					}
-				}, function (err) {
-					window.alert(err);
-				});
-		};
-		
-		$scope.enableBluetooth = function () {
-			window.MyCordovaPlugin.enableBluetooth(
-				function (res) {
-					if (res) {
-						console.log("Bluetooth enabled");
-					} else {
-						console.log("Problem in enabling Bluetooth");
-					}
-				}, function (err) {
-					window.alert(err);
-				});
-		};
-		
-		$scope.enableChannel = function () {
-			window.MyCordovaPlugin.enableChannel(
-				function (res) {
-					if (res) {
-						console.log("Channel enabled");
-					} else {
-						console.log("Problem in enabling channel.");
-					}
-				}, function (err) {
-					window.alert(err);
-				});
-		};
-	})
-	
-	.controller('searchCtrl', function ($scope, $state, $rootScope) {
-		$scope.getUnpairedDevices = function () {
-			window.MyCordovaPlugin.getUnpairedDevices(
-				function (res) {
-					if (res) {
-						$scope.devices = res;
-						console.log(res);
-					} else {
-						console.log("Problem occurred.");
-					}
-				}, function (err) {
-					window.alert(err);
-				});
-		};
-		
-		$scope.checkData = function () {
-			$scope.associateDevice();
-		};
-		
-		$scope.associateDevice = function () {
-			console.log($scope.devices);
-			console.log("Associating Device");
-			var deviceUUIDHASH31 = $scope.devices.discoveredList.UUIDHASH31;
-			window.MyCordovaPlugin.associateDevice(deviceUUIDHASH31, function (res) {
-					console.log("Associating Device");
-					console.log(res);
-					$rootScope.deviceId = res;
-					$state.go("app.colors");
-				},
-				function (err) {
-					console.log(err);
-					console.log("Error in associating device");
-				});
-		};
-		$scope.getUnpairedDevices();
-	})
-	
-	
-	.controller('bleCtrl', function ($scope) {
-		function initializeBluetooth() {
-			window.bluetoothle.initialize({request: true}).then(null,
-				function (obj) {
-					window.alert("error occured");
-					window.alert(obj);
-					//Handle errors
-				},
-				function (obj) {
-					window.alert("Bluetooth switched on successfully");
-					window.alert(obj);
-					//Handle successes
-				}
-			);
-		}
-		
-		initializeBluetooth();
-		
-	})
-	
-	.controller('colorCtrl', function ($scope, $rootScope) {
-		$scope.colors = [
-			{colorName: "Red", background: "#FF0000", color: "#FFFFFF", hex: "#FF0000"},
-			{colorName: "Blue", background: "#0000FF", color: "#FFFFFF", hex: "#0000FF"},
-			{colorName: "Green", background: "#008000", color: "#FFFFFF", hex: "#008000"}
-		];
-		
-		$scope.setOtherBackgroundColors = function (index) {
-			for (var i = 0; i < $scope.colors.length; i++) {
-				if (i != index) {
-					var tempColor1 = angular.copy($scope.colors[index].background);
-					$scope.colors[index].background = angular.copy($scope.colors[index].color);
-					$scope.colors[index].color = tempColor1;
-				}
-			}
-		};
-		
-		$scope.setRgb = function (index) {
-			console.log(index);
-			var tempColor = angular.copy($scope.colors[index].background);
-			$scope.colors[index].background = angular.copy($scope.colors[index].color);
-			$scope.colors[index].color = tempColor;
-			$scope.setOtherBackgroundColors(index);
-			
-			
-			window.MyCordovaPlugin.setRgb($rootScope.deviceId, $scope.colors[index].hex, function (res) {
+
+		$scope.setRgb = function () {
+			window.CsrMeshPlugin.setRgb($scope.device.deviceId, $scope.device.ledColor, function (res) {
+				CSRService.setDetailsWithColor($scope.device);
 				console.log(res);
 			}, function (err) {
 				console.log(err);
 			})
-		}
-		
-		
+		};
+
+
 	});
