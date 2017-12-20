@@ -25,20 +25,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
 		$rootScope.go = function (state) {
 			$state.go(state);
 		}
-
-		$rootScope.$on('$stateChangeStart',
-    function(event, toState, toParams, fromState, fromParams){
-      if(fromState.name == "tab.devices"){
-        window.CSRMeshPlugin.stopScan(
-          function(res) {
-          },
-          function (err) {
-            console.log(err);
-            console.log("Error in associating device");
-          }
-        );
-      }
-    })
 	})
 
 	.config(function ($stateProvider, $urlRouterProvider) {
